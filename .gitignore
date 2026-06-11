@@ -1,9 +1,6 @@
 auth.py
 log.txt
-robot.db
-robot.db-shm
-robot.db-wal
-*.db
+*.db*
 run.sh
 **/__pycache__/**
 src/cogs/secret.py
@@ -37,3 +34,4 @@ data/levels/new_adv_m/
 data/images/**/*
 target/renders/
 *.gif
+.DS_Store

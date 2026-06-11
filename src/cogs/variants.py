@@ -166,7 +166,7 @@ async def setup(bot):
             aliases = list(aliases)
             aliases.append(func.__name__)
             aliases = tuple(aliases)
-        pattern = rf"(?:{'|'.join(aliases)}){generate_pattern(list(params.values()))}"
+        pattern = rf"(?:{'|'.join(aliases)})/?{generate_pattern(list(params.values()))}"
         syntax = (f"\u001b[0;30m[\u001b[0;35m{'[0;30m|[0;35m'.join(aliases)}[0;30m]" if len(
             aliases) else "") + generate_syntax(params)
         class_name = func.__name__.replace("_", " ").title().replace(" ", "") + "Variant"
@@ -393,7 +393,7 @@ If [0;36minactive[0m is set and the color isn't hexadecimal, the color will sw
         """Applies a gradient to a tile.
 Interpolates color through CIELUV color space by default. This can be toggled with [0;36mraw[0m.
 If [0;36mextrapolate[0m is on, then colors outside the gradient will be extrapolated, as opposed to clamping from 0% to 100%.
-[0;36Dither[0ming does nothing with [0;36steps[0m set to 0."""
+[0;36mDither[0ming does nothing with [0;36msteps[0m set to 0."""
         tile.custom_color = True
         src = Color.parse(tile, renderer.palette_cache)
         dst = Color.parse(tile, renderer.palette_cache, color=color)
@@ -581,7 +581,8 @@ If [0;36mextrapolate[0m is on, then colors outside the gradient will be extrap
     @add_variant()
     async def posterize(sprite, bands: int):
         """Posterizes the sprite."""
-        return np.dstack([np.digitize(sprite[..., i], np.linspace(0, 255, bands)) * (255 / bands) for i in range(4)])
+        sprite = np.dstack([np.digitize(sprite[..., i], np.linspace(0, 255, bands)) * (255 / bands) for i in range(4)])
+        return sprite.astype(np.uint8)
 
     @add_variant("m")
     async def meta(sprite, level: Optional[int] = 1, kernel: Optional[Literal["full", "edge"]] = "full", size: Optional[int] = 1):
@@ -953,7 +954,7 @@ Slices are notated as [30m([36mstart[30m/[36mstop[30m/[36mstep[30m)[0m, 
         sprite[:, :, 3] += np.roll(np.roll(sprite[:, :, 3], -x, 1), -y, 0)
         sprite[:, :, 3] += np.roll(np.roll(sprite[:, :, 3], x, 1), y, 0)
         sprite[sprite > 255] = 255
-        return sprite
+        return sprite.astype(np.uint8)
 
     @add_variant("alpha", "op")
     async def opacity(sprite, amount: float):
@@ -1061,7 +1062,7 @@ Slices are notated as [30m([36mstart[30m/[36mstop[30m/[36mstep[30m)[0m, 
         """Saturates or desaturates a sprite."""
         gray_sprite = sprite.copy()
         gray_sprite[..., :3] = (sprite[..., 0] * 0.299 + sprite[..., 1] * 0.587 + sprite[..., 2] * 0.114)[..., np.newaxis]
-        return composite(gray_sprite, sprite, saturation)
+        return composite(gray_sprite, sprite, saturation).astype(np.uint8)
 
     @add_variant()
     async def blank(sprite):
